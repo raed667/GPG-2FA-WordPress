@@ -1,6 +1,6 @@
 #GPG - Two-Factor
 
-WordPress plugin based on "[Tow-Factor](https://fr.wordpress.org/plugins/two-factor/)" that provides tow factor authentication using GPG public keys.
+WordPress plugin based on "[Two-Factor](https://fr.wordpress.org/plugins/two-factor/)" that provides tow factor authentication using GPG public keys.
 
 **Requires at least:** 4.3  
 **Tested up to:** 4.4  
