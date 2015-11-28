@@ -7,20 +7,22 @@
  * @param string   $message  Optional. Message to display in header. Default empty.
  * @param WP_Error $wp_error Optional. The error to pass. Default empty.
  */
-function login_header( $title = 'Log In', $message = '', $wp_error = '' ) {
+function login_header($title = 'Log In', $message = '', $wp_error = '') {
 	global $error, $interim_login, $action;
 
 	// Don't index any of these forms
-	add_action( 'login_head', 'wp_no_robots' );
+	add_action('login_head', 'wp_no_robots');
 
-	if ( wp_is_mobile() )
-		add_action( 'login_head', 'wp_login_viewport_meta' );
+	if (wp_is_mobile()) {
+        add_action('login_head', 'wp_login_viewport_meta');
+    }
 
-	if ( empty($wp_error) )
-		$wp_error = new WP_Error();
+	if (empty($wp_error)) {
+        $wp_error = new WP_Error();
+    }
 
 	// Shake it!
-	$shake_error_codes = array( 'empty_password', 'empty_email', 'invalid_email', 'invalidcombo', 'empty_username', 'invalid_username', 'incorrect_password' );
+	$shake_error_codes = array('empty_password', 'empty_email', 'invalid_email', 'invalidcombo', 'empty_username', 'invalid_username', 'incorrect_password');
 	/**
 	 * Filter the error codes array for shaking the login form.
 	 *

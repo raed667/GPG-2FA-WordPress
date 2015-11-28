@@ -11,21 +11,21 @@
 /**
  * Shortcut constant to the path of this file.
  */
-define( 'TWO_FACTOR_DIR', plugin_dir_path( __FILE__ ) );
+define('TWO_FACTOR_DIR', plugin_dir_path(__FILE__));
 
 /**
  * Include the base class here, so that other plugins can also extend it.
  */
-require_once( TWO_FACTOR_DIR . 'providers/class.two-factor-provider.php' );
+require_once(TWO_FACTOR_DIR . 'providers/class.two-factor-provider.php');
 
 /**
  * Include the core that handles the common bits.
  */
-require_once( TWO_FACTOR_DIR . 'class.two-factor-core.php' );
+require_once(TWO_FACTOR_DIR . 'class.two-factor-core.php');
 Two_Factor_Core::add_hooks();
 
 /**
  * Include the application passwords system.
  */
-require_once( TWO_FACTOR_DIR . 'class.application-passwords.php' );
+require_once(TWO_FACTOR_DIR . 'class.application-passwords.php');
 Application_Passwords::add_hooks();
