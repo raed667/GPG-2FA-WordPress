@@ -54,6 +54,7 @@ class Application_Passwords_List_Table extends WP_List_Table
      *
      * @param object $item The current item.
      * @param string $column_name The current column name.
+     * @return bool|string
      */
     protected function column_default($item, $column_name)
     {
@@ -79,7 +80,7 @@ class Application_Passwords_List_Table extends WP_List_Table
                 }
                 return $item['last_ip'];
             default:
-                return 'WTF^^?';
+                return 'WTF^^?'; // FIXME: handle this case
         }
     }
 

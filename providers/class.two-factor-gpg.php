@@ -177,7 +177,7 @@ class Two_Factor_GPG extends Two_Factor_Provider
         try {
             $this->encrypt_token("toto", $key);
             return true;
-        } catch (Execption $ex) {
+        } catch (\Exception $ex) {
             return false;
         }
     }

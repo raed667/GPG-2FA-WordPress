@@ -193,10 +193,11 @@ class Two_Factor_Core {
 	 * @since 0.1-dev
 	 *
 	 * @param int $user_id Optional. User ID. Default is 'null'.
-	 */
-	public static function is_user_using_two_factor( $user_id = null ) {
-		$provider = self::get_primary_provider_for_user( $user_id );
-		return ! empty( $provider );
+	 * @return bool
+     */
+	public static function is_user_using_two_factor($user_id = null) {
+		$provider = self::get_primary_provider_for_user($user_id);
+		return !empty($provider);
 	}
 
 	/**
@@ -207,14 +208,14 @@ class Two_Factor_Core {
 	 * @param string  $user_login Username.
 	 * @param WP_User $user WP_User object of the logged-in user.
 	 */
-	public static function wp_login( $user_login, $user ) {
-		if ( ! self::is_user_using_two_factor( $user->ID ) ) {
+	public static function wp_login($user_login, $user) {
+		if (!self::is_user_using_two_factor($user->ID)) {
 			return;
 		}
 
 		wp_clear_auth_cookie();
 
-		self::show_two_factor_login( $user );
+		self::show_two_factor_login($user);
 		exit;
 	}
 
@@ -396,7 +397,8 @@ class Two_Factor_Core {
 	 * @since 0.1-dev
 	 *
 	 * @param int $user_id User ID.
-	 */
+	 * @return array|bool
+     */
 	public static function create_login_nonce( $user_id ) {
 		$login_nonce               = array();
 		$login_nonce['key']        = wp_hash( $user_id . mt_rand() . microtime(), 'nonce' );
@@ -427,7 +429,8 @@ class Two_Factor_Core {
 	 *
 	 * @param int    $user_id User ID.
 	 * @param string $nonce Login nonce.
-	 */
+	 * @return bool
+     */
 	public static function verify_login_nonce( $user_id, $nonce ) {
 		$login_nonce = get_user_meta( $user_id, self::USER_META_NONCE_KEY, true );
 		if ( ! $login_nonce ) {

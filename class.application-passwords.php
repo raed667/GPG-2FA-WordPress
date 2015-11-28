@@ -45,6 +45,7 @@ class Application_Passwords
      * @param WP_User $input_user User to authenticate.
      * @param string $username User login.
      * @param string $password User password.
+     * @return WP_User
      */
     public static function authenticate($input_user, $username, $password)
     {

@@ -33,7 +33,6 @@ class GPG
 
 	private function gpg_encrypt($key, $text) {
 
-		$i = 0;
 		$len = strlen($text);
 		$iblock = array_fill(0, $this->width, 0);
 		$rblock = array_fill(0, $this->width, 0);
@@ -41,20 +40,22 @@ class GPG
 	 
 		$cipher = "";
 
-		if($len % $this->width) {
-			for($i = ($len % $this->width); $i < $this->width; $i++) $text .= "\0";
+		if ($len % $this->width) {
+			for ($i = ($len % $this->width); $i < $this->width; $i++) {
+				$text .= "\0";
+			}
 		}
 	 
 		$ekey = new Expanded_Key($key);
 
-		for($i = 0; $i < $this->width; $i++) {
+		for ($i = 0; $i < $this->width; $i++) {
 			$iblock[$i] = 0;
 			$rblock[$i] = GPG_Utility::c_random();
 		}
 
 
 		$iblock = GPG_AES::encrypt($iblock, $ekey);
-		for($i = 0; $i < $this->width; $i++) {
+		for ($i = 0; $i < $this->width; $i++) {
 			$ct[$i] = ($iblock[$i] ^= $rblock[$i]);
 		}
 
@@ -62,13 +63,13 @@ class GPG
 		$ct[$this->width]   = ($iblock[0] ^ $rblock[$this->width - 2]);
 		$ct[$this->width + 1] = ($iblock[1] ^ $rblock[$this->width - 1]);
 	 
-		for($i = 0; $i < $this->width + 2; $i++) $cipher .= chr($ct[$i]);
+		for ($i = 0; $i < $this->width + 2; $i++) $cipher .= chr($ct[$i]);
 
 		$iblock = array_slice($ct, 2, $this->width + 2);
 
-		for($n = 0; $n < strlen($text); $n += $this->width) {
+		for ($n = 0; $n < strlen($text); $n += $this->width) {
 			$iblock = GPG_AES::encrypt($iblock, $ekey);
-			for($i = 0; $i < $this->width; $i++) {
+			for ($i = 0; $i < $this->width; $i++) {
 				$iblock[$i] ^= ord($text[$n + $i]);
 				$cipher .= chr($iblock[$i]);
 			}
@@ -107,50 +108,40 @@ class GPG
 
 	private function gpg_session($key_id, $key_type, $session_key, $public_key)
 	{ 
-
-		$mod = array();
 		$exp = array();
-		$enc = "";
-	 
+
 		$s = base64_decode($public_key);
 		$l = floor((ord($s[0]) * 256 + ord($s[1]) + 7) / 8);
 		$mod = mpi2b(substr($s, 0, $l + 2));
-		if($key_type) {
-			$grp = array();
-			$y = array();
-			$B = array();
-			$C = array();
 
+		$c = 0;
+		$lsk = strlen($session_key);
+		for ($i = 0; $i < $lsk; $i++) {
+			$c += ord($session_key[$i]);
+		}
+		$c &= 0xffff;
+
+		$lm = ($l - 2) * 8 + 2;
+		$m = chr($lm / 256) . chr($lm % 256) .
+				chr(2) . GPG_Utility::s_random($l - $lsk - 6, 1) . "\0" .
+				chr(7) . $session_key .
+				chr($c / 256) . chr($c & 0xff);
+
+		if ($key_type) {
 			$l2 = floor((ord($s[$l + 2]) * 256 + ord($s[$l + 3]) + 7) / 8) + 2;
 			$grp = mpi2b(substr($s, $l + 2, $l2));
 			$y = mpi2b(substr($s, $l + 2 + $l2));
 			$exp[0] = $this->el[GPG_Utility::c_random() & 7];
 			$B = bmodexp($grp, $exp, $mod);
 			$C = bmodexp($y, $exp, $mod);
+			$enc = b2mpi($B) . b2mpi(bmod(bmul(mpi2b($m), $C), $mod));
+			$char = 16;
 		} else {
 			$exp = mpi2b(substr($s, $l + 2));
-		}
-
-		$c = 0;
-		$lsk = strlen($session_key);
-		for($i = 0; $i < $lsk; $i++) $c += ord($session_key[$i]);
-		$c &= 0xffff;
-
-		$lm = ($l - 2) * 8 + 2;
-		$m = chr($lm / 256) . chr($lm % 256) .
-			chr(2) . GPG_Utility::s_random($l - $lsk - 6, 1) . "\0" .
-			chr(7) . $session_key .
-			chr($c / 256) . chr($c & 0xff);
-
-		if($key_type) {
-			$enc = b2mpi($B) . b2mpi(bmod(bmul(mpi2b($m), $C), $mod));
-			return $this->gpg_header(0x84,strlen($enc) + 10) .
-				chr(3) . $key_id . chr(16) . $enc;
-		} else {
 			$enc = b2mpi(bmodexp(mpi2b($m), $exp, $mod));
-			return $this->gpg_header(0x84, strlen($enc) + 10) .
-				chr(3) . $key_id . chr(1) . $enc;
+			$char = 1;
 		}
+		return $this->gpg_header(0x84, strlen($enc) + 10) . chr(3) . $key_id . chr($char) . $enc;
 	}
 
 	private function gpg_literal($text)
@@ -192,8 +183,11 @@ class GPG
 		$code = base64_encode($cp);
 		$code = wordwrap($code, 64, "\n", 1);
 
-		if($versionHeader===NULL) $versionHeader="Version: VerySimple PHP-GPG v" . $this->version . "\n\n";
-		else if (strlen($versionHeader)>0)$versionHeader="Version: " . $versionHeader . "\n\n";
+		if ($versionHeader === NULL) {
+			$versionHeader = "Version: VerySimple PHP-GPG v" . $this->version . "\n\n";
+		} elseif (strlen($versionHeader) > 0) {
+			$versionHeader = "Version: " . $versionHeader . "\n\n";
+		}
 
 		return
 			"-----BEGIN PGP MESSAGE-----\n\n" .
@@ -202,5 +196,3 @@ class GPG
 			"\n-----END PGP MESSAGE-----\n";
 	}
 }
-
-?>
